@@ -12,7 +12,7 @@ class Config(object):
     VISUALIZE = False
 
     # I/O
-    NEW_DATASET_PATH = './dataset.tfrecords'
+    NEW_DATASET_PATH = './datasets.tfrecords'
     DATA_PATH = './data.tfrecords'
     MODEL_DIR = './checkpoints'
     LOG_PATH = 'aocr.log'
@@ -43,7 +43,7 @@ class Config(object):
 
     MAX_WIDTH = 160
     MAX_HEIGHT = 60
-    MAX_PREDICTION = 8
+    MAX_PREDICTION = 16
 
     USE_DISTANCE = True
 

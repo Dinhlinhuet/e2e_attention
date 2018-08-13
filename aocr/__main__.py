@@ -11,11 +11,11 @@ import logging
 
 import tensorflow as tf
 
-from .model.model import Model
-from .defaults import Config
-from .util import dataset
-from .util.data_gen import DataGen
-from .util.export import Exporter
+from model.model import Model
+from defaults import Config
+from util import dataset
+from util.data_gen import DataGen
+from util.export import Exporter
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -35,9 +35,9 @@ def process_args(args, defaults):
                                    % (defaults.LOG_PATH)))
 
     # Dataset generation
-    parser_dataset = subparsers.add_parser('dataset', parents=[parser_base],
-                                           help='create a dataset in the TFRecords format')
-    parser_dataset.set_defaults(phase='dataset')
+    parser_dataset = subparsers.add_parser('datasets', parents=[parser_base],
+                                           help='create a datasets in the TFRecords format')
+    parser_dataset.set_defaults(phase='datasets')
     parser_dataset.add_argument('annotations_path', metavar='annotations',
                                 type=str,
                                 help=('path to the annotation file'))
@@ -55,7 +55,7 @@ def process_args(args, defaults):
                                 help='do not force uppercase on label values')
     parser_dataset.add_argument('--save-filename', dest='save_filename',
                                 action='store_true', default=defaults.SAVE_FILENAME,
-                                help='save filename as a field in the dataset')
+                                help='save filename as a field in the datasets')
 
     # Shared model arguments
     parser_model = argparse.ArgumentParser(add_help=False)
@@ -133,9 +133,9 @@ def process_args(args, defaults):
     parser_train = subparsers.add_parser('train', parents=[parser_base, parser_model],
                                          help='Train the model and save checkpoints.')
     parser_train.set_defaults(phase='train')
-    parser_train.add_argument('dataset_path', metavar='dataset',
+    parser_train.add_argument('dataset_path', metavar='datasets',
                               type=str, default=defaults.DATA_PATH,
-                              help=('training dataset in the TFRecords format'
+                              help=('training datasets in the TFRecords format'
                                     ' (default: %s)'
                                     % (defaults.DATA_PATH)))
     parser_train.add_argument('--steps-per-checkpoint', dest="steps_per_checkpoint",
@@ -163,9 +163,9 @@ def process_args(args, defaults):
     parser_test.set_defaults(phase='test', steps_per_checkpoint=0, batch_size=1,
                              max_width=defaults.MAX_WIDTH, max_height=defaults.MAX_HEIGHT,
                              max_prediction=defaults.MAX_PREDICTION, full_ascii=defaults.FULL_ASCII)
-    parser_test.add_argument('dataset_path', metavar='dataset',
+    parser_test.add_argument('dataset_path', metavar='datasets',
                              type=str, default=defaults.DATA_PATH,
-                             help=('Testing dataset in the TFRecords format'
+                             help=('Testing datasets in the TFRecords format'
                                    ', default=%s'
                                    % (defaults.DATA_PATH)))
     parser_test.add_argument('--visualize', dest='visualize', action='store_true',
@@ -214,7 +214,7 @@ def main(args=None):
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
 
-        if parameters.phase == 'dataset':
+        if parameters.phase == 'datasets':
             dataset.generate(
                 parameters.annotations_path,
                 parameters.output_path,

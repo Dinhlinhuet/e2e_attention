@@ -6,7 +6,8 @@ import re
 import tensorflow as tf
 
 from six import b
-
+ALLOWED_CHARS='%s/dev/charset_codes.txt'%(sys.path[-1])
+TEST_PKL_FILE='%s/dev/images.pkl'%(sys.path[-1])
 
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -19,7 +20,7 @@ def _int64_feature(value):
 def generate(annotations_path, output_path, log_step=5000,
              force_uppercase=True, save_filename=False):
 
-    logging.info('Building a dataset from %s.', annotations_path)
+    logging.info('Building a datasets from %s.', annotations_path)
     logging.info('Output file: %s', output_path)
 
     writer = tf.python_io.TFRecordWriter(output_path)

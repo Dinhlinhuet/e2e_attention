@@ -3,6 +3,10 @@ datasets/
 checkpoints/
 models/
 results/
+cropped/
+
+*.png
+*.jpg
 
 ### Python template
 # Byte-compiled / optimized / DLL files

@@ -16,8 +16,8 @@ import tensorflow as tf
 from six.moves import xrange  # pylint: disable=redefined-builtin
 from .cnn import CNN
 from .seq2seq_model import Seq2SeqModel
-from ..util.data_gen import DataGen
-from ..util.visualizations import visualize_attention
+from util.data_gen import DataGen
+from util.visualizations import visualize_attention
 
 
 class Model(object):
@@ -41,7 +41,7 @@ class Model(object):
                  use_distance=True,
                  max_image_width=160,
                  max_image_height=60,
-                 max_prediction_length=8,
+                 max_prediction_length=16,
                  channels=1,
                  reg_val=0):
 
@@ -352,13 +352,13 @@ class Model(object):
             logging.info('Step {:.0f} ({:.3f}s). '
                          'Accuracy: {:6.2%}, '
                          'loss: {:f}, perplexity: {:0<7.6}, probability: {:6.2%} {}'.format(
-                             current_step,
-                             curr_step_time,
-                             num_correct / num_total,
-                             result['loss'],
-                             math.exp(result['loss']) if result['loss'] < 300 else float('inf'),
-                             probability,
-                             correctness))
+                current_step,
+                curr_step_time,
+                num_correct / num_total,
+                result['loss'],
+                math.exp(result['loss']) if result['loss'] < 300 else float('inf'),
+                probability,
+                correctness))
 
     def train(self, data_path, num_epoch):
         logging.info('num_epoch: %d', num_epoch)
