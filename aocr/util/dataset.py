@@ -60,7 +60,11 @@ def generate(annotations_path, output_path, log_step=5000,
 
 #            with open(img_path, 'rb') as img_file:
 #                img = img_file.read()
-            img = lineocr._generate_sequence_image(label,printed_data)[0].tobytes()
+            img = lineocr._generate_sequence_image(label,printed_data)[0]
+            tmp_path = '/home/ubuntu/da_lih/gen_hw/dataloader/dev/tmp.png'
+            cv2.imwrite(tmp_path,img)
+            with open(tmp_path, 'rb') as img_file:
+                img = img_file.read()
             if force_uppercase:
                 label = label.upper()
 
