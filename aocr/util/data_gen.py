@@ -20,11 +20,11 @@ class DataGen(object):
     GO_ID = 1
     EOS_ID = 2
     IMAGE_HEIGHT = 32
-    CHARMAP = list('0123456789HS年月日平らか間頃成-./~')
+    CHARMAP = ['', '', ''] +list('0123456789HS年月日平らか間頃成-./~')
 
     @staticmethod
     def set_full_ascii_charmap():
-        DataGen.CHARMAP = [chr(i) for i in range(32, 127)]
+        DataGen.CHARMAP = ['', '', ''] +[chr(i) for i in range(32, 127)]
 
     def __init__(self,
                  annotation_fn,
@@ -84,7 +84,8 @@ class DataGen(object):
 
     def convert_lex(self, lex):
         if sys.version_info >= (3,):
-            lex = lex.decode('iso-8859-1')
+            #lex = lex.decode('iso-8859-1')
+            lex = lex.decode('utf8')
 
         assert len(lex) < self.bucket_specs[-1][1]
 

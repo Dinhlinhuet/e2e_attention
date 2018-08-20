@@ -39,9 +39,9 @@ class Model(object):
                  gpu_id,
                  use_gru,
                  use_distance=True,
-                 max_image_width=160,
+                 max_image_width=320,
                  max_image_height=60,
-                 max_prediction_length=16,
+                 max_prediction_length=18,
                  channels=1,
                  reg_val=0):
 
@@ -225,7 +225,7 @@ class Model(object):
             if not self.forward_only:  # train
                 self.updates = []
                 self.summaries_by_bucket = []
-
+                #print('prediction',self.prediction)
                 params = tf.trainable_variables()
                 opt = tf.train.AdadeltaOptimizer(learning_rate=initial_learning_rate)
                 loss_op = self.attention_decoder_model.loss
@@ -257,6 +257,7 @@ class Model(object):
                             global_step=self.global_step
                         )
                     )
+                
 
         self.saver_all = tf.train.Saver(tf.all_variables())
         self.checkpoint_path = os.path.join(self.model_dir, "model.ckpt")
@@ -366,6 +367,7 @@ class Model(object):
             data_path, self.buckets,
             epochs=num_epoch, max_width=self.max_original_width
         )
+        
         step_time = 0.0
         loss = 0.0
         current_step = 0
@@ -374,50 +376,54 @@ class Model(object):
 
         logging.info('Starting the training process.')
         for batch in s_gen.gen(self.batch_size):
-
+            num_correct = 0.0
+            num_total = 0.0
             current_step += 1
-
             start_time = time.time()
-            # result = self.step(batch, self.forward_only)
-            result = None
-            try:
-                result = self.step(batch, self.forward_only)
-            except Exception as e:
-                skipped_counter += 1
-                logging.info("Step {} failed, batch skipped." +
-                             " Total skipped: {}".format(current_step, skipped_counter))
-                logging.error(
-                    "Step {} failed. Exception details: {}".format(current_step, str(e)))
-                continue
+            result = self.step(batch, self.forward_only)
+            #result = None
+           # try:
+           #     result = self.step(batch, self.forward_only)
+           # except Exception as e:
+           #     skipped_counter += 1
+           #     logging.info("Step {} failed, batch skipped." +
+           #                  " Total skipped: {}".format(current_step, skipped_counter))
+           #     logging.error(
+           #         "Step {} failed. Exception details: {}".format(current_step, str(e)))
+           #     continue
 
             loss += result['loss'] / self.steps_per_checkpoint
             curr_step_time = (time.time() - start_time)
             step_time += curr_step_time / self.steps_per_checkpoint
 
-            # num_correct = 0
+            #num_correct = 0
 
-            # step_outputs = result['prediction']
-            # grounds = batch['labels']
-            # for output, ground in zip(step_outputs, grounds):
-            #     if self.use_distance:
-            #         incorrect = distance.levenshtein(output, ground)
-            #         incorrect = float(incorrect) / len(ground)
-            #         incorrect = min(1.0, incorrect)
-            #     else:
-            #         incorrect = 0 if output == ground else 1
-            #     num_correct += 1. - incorrect
+            step_outputs = result['prediction']
+            #print('step output',step_outputs)
+            grounds = batch['labels']
+            for output, ground in zip(step_outputs, grounds):
+                num_total+=1
+                if self.use_distance:
+                    incorrect = distance.levenshtein(output, ground)
+                    incorrect = float(incorrect) / len(ground)
+                    incorrect = min(1.0, incorrect)
+                else:
+                    incorrect = 0 if output == ground else 1
+                num_correct += 1. - incorrect
 
             writer.add_summary(result['summaries'], current_step)
 
-            # precision = num_correct / len(batch['labels'])
+            #precision = num_correct / len(batch['labels'])
+            print('numcorrect:', num_correct, num_total) 
+            precision = num_correct / self.batch_size
             step_perplexity = math.exp(result['loss']) if result['loss'] < 300 else float('inf')
 
-            # logging.info('Step %i: %.3fs, precision: %.2f, loss: %f, perplexity: %f.'
-            #              % (current_step, curr_step_time, precision*100,
-            #                 result['loss'], step_perplexity))
+            logging.info('Step %i: %.3fs, precision: %.2f, loss: %f, perplexity: %f.'
+                         % (current_step, curr_step_time, precision*100,
+                            result['loss'], step_perplexity))
 
-            logging.info('Step %i: %.3fs, loss: %f, perplexity: %f.',
-                         current_step, curr_step_time, result['loss'], step_perplexity)
+            #logging.info('Step %i: %.3fs, loss: %f, perplexity: %f.',
+            #             current_step, curr_step_time, result['loss'], step_perplexity)
 
             # Once in a while, we save checkpoint, print statistics, and run evals.
             if current_step % self.steps_per_checkpoint == 0:
@@ -467,7 +473,7 @@ class Model(object):
 
         if not forward_only:
             output_feed += [self.summaries_by_bucket[0],
-                            self.updates[0]]
+                            self.updates[0], self.prediction]
         else:
             output_feed += [self.prediction]
             output_feed += [self.probability]
@@ -482,6 +488,7 @@ class Model(object):
 
         if not forward_only:
             res['summaries'] = outputs[1]
+            res['prediction'] = outputs[3]
         else:
             res['prediction'] = outputs[1]
             res['probability'] = outputs[2]
