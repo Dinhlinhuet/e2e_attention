@@ -36,12 +36,12 @@ class Config(object):
     ATTN_NUM_HIDDEN = 128  # number of hidden units in attention decoder cell
     ATTN_NUM_LAYERS = 2  # number of layers in attention decoder cell
     # (Encoder number of hidden units will be ATTN_NUM_HIDDEN*ATTN_NUM_LAYERS)
-    LOAD_MODEL = False
+    LOAD_MODEL = True
     OLD_MODEL_VERSION = False
     TARGET_VOCAB_SIZE = 28  # 0: PADDING, 1: GO, 2: EOS, >2: 0-9, a-z
     CHANNELS = 1  # number of color channels from source image (1 = grayscale, 3 = rgb)
 
-    MAX_WIDTH = 320
+    MAX_WIDTH = 160
     MAX_HEIGHT = 60
     MAX_PREDICTION = 18
 
