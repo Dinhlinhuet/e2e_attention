@@ -1,0 +1,2 @@
+python3 aocr/__main__.py test --visualize --model-dir /media/warrior/Ubuntu/corp_workspace/attention-ocr/checkpoints/remote ./datasets/testing.tfrecords
+python3 aocr/__main__.py datasets ./datasets/real_data_test.txt ./datasets/real_data_test.tfrecords

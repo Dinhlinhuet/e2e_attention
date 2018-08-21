@@ -6,12 +6,14 @@ import re
 import tensorflow as tf
 import cv2
 import sys
-sys.path.append('/home/ubuntu/da_lih/gen_hw/')
+# sys.path.append('/home/ubuntu/da_lih/gen_hw/')
+sys.path.append('/media/warrior/Ubuntu/corp_workspace/attention-ocr/')
 
 from six import b
-from dataloader.generate.image import HandwrittenLineGenerator
-import dataloader.utils.constants as constants
+# from dataloader.generate.image import HandwrittenLineGenerator
+# import dataloader.utils.constants as constants
 
+img_dir = '%s/datasets/test_on_real/'%(sys.path[-1])
 ALLOWED_CHARS='%s/dataloader/dev/charset_codes.txt'%(sys.path[-1])
 TEST_PKL_FILE='%s/dataloader/dev/datefield.pkl'%(sys.path[-1])
 PRINTED_DIR = '%s/dataloader/dev/PRINTED/'%(sys.path[-1])
@@ -41,11 +43,11 @@ def generate(annotations_path, output_path, log_step=5000,
     writer = tf.python_io.TFRecordWriter(output_path)
     longest_label = ''
     idx = 0
-    lineocr = HandwrittenLineGenerator(allowed_chars=ALLOWED_CHARS)
-    lineocr.load_character_database(TEST_PKL_FILE)
-    lineocr.initialize()
-    print('lineocr', lineocr.char_2_imgs.keys())
-    printed_data = read_printed_data()
+    # lineocr = HandwrittenLineGenerator(allowed_chars=ALLOWED_CHARS)
+    # lineocr.load_character_database(TEST_PKL_FILE)
+    # lineocr.initialize()
+    # print('lineocr', lineocr.char_2_imgs.keys())
+    # printed_data = read_printed_data()
     with open(annotations_path, 'r') as annotations:
         for idx, line in enumerate(annotations):
             line = line.rstrip('\n')
@@ -57,14 +59,21 @@ def generate(annotations_path, output_path, log_step=5000,
                 logging.error('missing filename or label, ignoring line %i: %s', idx+1, line)
                 continue
             (img_path, label) = line_match.groups()
-
-#            with open(img_path, 'rb') as img_file:
-#                img = img_file.read()
-            img = lineocr._generate_sequence_image(label,printed_data)[0]
-            tmp_path = '/home/ubuntu/da_lih/gen_hw/dataloader/dev/tmp.png'
-            cv2.imwrite(tmp_path,img)
-            with open(tmp_path, 'rb') as img_file:
-                img = img_file.read()
+            img_path = '%s%s'%(img_dir, img_path)
+            img_tmp = cv2.imread(img_path)
+            hei, wid,_ = img_tmp.shape
+            resize = cv2.resize(img_tmp,(160, int(hei * 160/wid)))
+            cv2.imwrite(img_path, resize)
+            print('imgpath',img_path)
+            # cv2.imshow(img_path,resize)
+            # cv2.waitKey(0)
+            with open(img_path, 'rb') as img_file:
+               img = img_file.read()
+            # img = lineocr._generate_sequence_image(label,printed_data)[0]
+            # tmp_path = '/home/ubuntu/da_lih/gen_hw/dataloader/dev/tmp.png'
+            # cv2.imwrite(tmp_path,img)
+            # with open(tmp_path, 'rb') as img_file:
+            #     img = img_file.read()
             if force_uppercase:
                 label = label.upper()
 

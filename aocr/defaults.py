@@ -14,7 +14,8 @@ class Config(object):
     # I/O
     NEW_DATASET_PATH = './datasets.tfrecords'
     DATA_PATH = './data.tfrecords'
-    MODEL_DIR = './checkpoints'
+    # MODEL_DIR = './checkpoints'
+    MODEL_DIR = './checkpoints/remote'
     LOG_PATH = 'aocr.log'
     OUTPUT_DIR = './results'
     STEPS_PER_CHECKPOINT = 100

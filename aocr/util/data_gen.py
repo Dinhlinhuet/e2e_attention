@@ -65,11 +65,14 @@ class DataGen(object):
             while True:
                 try:
                     raw_images, raw_labels, raw_comments = sess.run([images, labels, comments])
+                    print('raw', raw_images.shape)
                     for img, lex, comment in zip(raw_images, raw_labels, raw_comments):
-
+                        print('self', self.max_width)
+                        print('check', Image.open(IO(img)).size)
                         if self.max_width and (Image.open(IO(img)).size[0] <= self.max_width):
                             word = self.convert_lex(lex)
-
+                            print('word', word)
+                            print('check',Image.open(IO(img)).size)
                             bucket_size = self.bucket_data.append(img, word, lex, comment)
                             if bucket_size >= batch_size:
                                 bucket = self.bucket_data.flush_out(
@@ -84,12 +87,14 @@ class DataGen(object):
 
     def convert_lex(self, lex):
         if sys.version_info >= (3,):
-            lex = lex.decode('iso-8859-1')
+            # lex = lex.decode('iso-8859-1')
+            print('lex', lex)
+            lex = lex.decode('utf8')
 
         assert len(lex) < self.bucket_specs[-1][1]
 
         return np.array(
-            [self.GO_ID] + [self.CHARMAP.index(char) for char in lex] + [self.EOS_ID],
+            [self.CHARMAP.index(char) for char in lex],
             dtype=np.int32)
 
     @staticmethod

@@ -49,7 +49,7 @@ class Model(object):
 
         # We need resized width, not the actual width
         max_resized_width = 1. * max_image_width / max_image_height * DataGen.IMAGE_HEIGHT
-
+        print('max resize', max_resized_width, DataGen.IMAGE_HEIGHT)
         self.max_original_width = max_image_width
         self.max_width = int(math.ceil(max_resized_width))
 
@@ -288,7 +288,7 @@ class Model(object):
         current_step = 0
         num_correct = 0.0
         num_total = 0.0
-
+        print('testing------')
         s_gen = DataGen(data_path, self.buckets, epochs=1, max_width=self.max_original_width)
         for batch in s_gen.gen(1):
             current_step += 1
@@ -298,14 +298,19 @@ class Model(object):
             curr_step_time = (time.time() - start_time)
 
             num_total += 1
-
+            print('here')
             output = result['prediction']
             ground = batch['labels'][0]
             comment = batch['comments'][0]
             if sys.version_info >= (3,):
-                output = output.decode('iso-8859-1')
-                ground = ground.decode('iso-8859-1')
-                comment = comment.decode('iso-8859-1')
+                # output = output.decode('iso-8859-1')
+                # ground = ground.decode('iso-8859-1')
+                # comment = comment.decode('iso-8859-1')
+                print('outputb', output)
+                output = output.decode('utf8')
+                print('output', output)
+                ground = ground.decode('utf8')
+                comment = comment.decode('utf8')
 
             probability = result['probability']
 
