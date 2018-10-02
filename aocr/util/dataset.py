@@ -6,16 +6,8 @@ import re
 import tensorflow as tf
 import cv2
 import sys
-sys.path.append('/home/ubuntu/da_lih/gen_hw/')
 
 from six import b
-from dataloader.generate.image import HandwrittenLineGenerator
-import dataloader.utils.constants as constants
-
-ALLOWED_CHARS='%s/dataloader/dev/charset_codes.txt'%(sys.path[-1])
-TEST_PKL_FILE='%s/dataloader/dev/datefield.pkl'%(sys.path[-1])
-PRINTED_DIR = '%s/dataloader/dev/PRINTED/'%(sys.path[-1])
-print('TEST_PKL_FILE',TEST_PKL_FILE)
 
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -37,33 +29,28 @@ def generate(annotations_path, output_path, log_step=5000,
 
     logging.info('Building a datasets from %s.', annotations_path)
     logging.info('Output file: %s', output_path)
-
+    
+    prefix_img ='/data/fixed_form_hw_data/data/'
     writer = tf.python_io.TFRecordWriter(output_path)
     longest_label = ''
     idx = 0
-    lineocr = HandwrittenLineGenerator(allowed_chars=ALLOWED_CHARS)
-    lineocr.load_character_database(TEST_PKL_FILE)
-    lineocr.initialize()
-    print('lineocr', lineocr.char_2_imgs.keys())
-    printed_data = read_printed_data()
     with open(annotations_path, 'r') as annotations:
         for idx, line in enumerate(annotations):
             line = line.rstrip('\n')
 
             # Split the line on the first whitespace character and allow empty values for the label
-            # NOTE: this does not allow whitespace in image paths
+            # NOTE: this does not allow whitespace in image path
+            #print(line)
             line_match = re.match(r'(\S+)\s(.*)', line)
             if line_match is None:
                 logging.error('missing filename or label, ignoring line %i: %s', idx+1, line)
                 continue
             (img_path, label) = line_match.groups()
-
+#            (img_path, label) = line.split()
+            img_path = prefix_img+img_path
 #            with open(img_path, 'rb') as img_file:
 #                img = img_file.read()
-            img = lineocr._generate_sequence_image(label,printed_data)[0]
-            tmp_path = '/home/ubuntu/da_lih/gen_hw/dataloader/dev/tmp.png'
-            cv2.imwrite(tmp_path,img)
-            with open(tmp_path, 'rb') as img_file:
+            with open(img_path, 'rb') as img_file:
                 img = img_file.read()
             if force_uppercase:
                 label = label.upper()

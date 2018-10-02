@@ -4,7 +4,8 @@ checkpoints/
 models/
 results/
 cropped/
-
+data/
+meta/
 *.png
 *.jpg
 
