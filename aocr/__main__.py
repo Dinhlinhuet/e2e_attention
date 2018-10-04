@@ -10,6 +10,8 @@ import argparse
 import logging
 
 import tensorflow as tf
+import edit_distance
+import glob
 
 from model.model import Model
 from defaults import Config
@@ -192,7 +194,18 @@ def process_args(args, defaults):
                                            help='Predict text from files (feed through stdin).')
     parser_predict.set_defaults(phase='predict', steps_per_checkpoint=0, batch_size=1)
 
+    #predict folder
+
+    parser_predict = subparsers.add_parser('predict_folder', parents=[parser_base, parser_model],
+                                                help='Predict text from files (feed through stdin).')
+    parser_predict.set_defaults(phase='predict_folder', steps_per_checkpoint=0, batch_size=1)
+    
+    parser_test.add_argument('dataset_path', metavar='datasets',
+                                  type=str, default=defaults.DATA_PATH,
+                                                               help=('Testing datasets in the folder format default=%s' % (defaults.DATA_PATH)))
+
     parameters = parser.parse_args(args)
+
     return parameters
 
 
@@ -275,9 +288,53 @@ def main(args=None):
             exporter = Exporter(model)
             exporter.save(parameters.export_path, parameters.format)
             return
-        else:
-            raise NotImplementedError
+        elif parameters.phase == 'predict_folder':
+            img_dir = '/home/da_lih/ocr/e2e_attention/data/correct_lines/'
+            #img_dir = parameters.dataset_path
+            predict_folder(img_dir, model)
 
+def fmeasure(textocr, truelabel, correct_part):
+        A=len(truelabel)
+        B=len (textocr)
+        C=correct_part
+        if C==0:
+            acc = 0
+        else:
+            acc = 2*C/B*C/A/(C/A+C/B)
+        return acc
+
+def cal_acc_line(gt,ocr):
+    sm = edit_distance.SequenceMatcher(a=gt, b=ocr)
+    return sm.matches()
+
+
+def predict_folder(img_dir, model):
+    total = ''
+    ocr = ''
+    correct = 0
+    fileimgs = glob.glob('%s/*/*' % img_dir)
+    for filename in fileimgs:
+        #print('filename',filename)
+        label = filename.split('/')[-1][:-4]
+        try:
+            with open(filename, 'rb') as img_file:
+                img_file_data = img_file.read()
+        except IOError:
+            logging.error('Result: error while opening file %s.', filename)
+            continue
+        text, probability = model.predict(img_file_data)
+        total += label
+        ocr += text
+        matches = cal_acc_line(label, text)
+        acc = fmeasure(text, label, matches)
+        correct += matches
+        print('label ', label, 'ocr ', text, 'acc ', acc)
+    total_acc = fmeasure(total, ocr, correct)
+    print('total acc ', total_acc)
 
 if __name__ == "__main__":
+    img_dir = '~/ocr/e2e_attention/data/correct_lines/'
+    #print('here')
     main()
+
+

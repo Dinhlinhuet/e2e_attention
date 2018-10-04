@@ -41,7 +41,7 @@ class Model(object):
                  use_distance=True,
                  max_image_width=320,
                  max_image_height=60,
-                 max_prediction_length=38,
+                 max_prediction_length=100,
                  channels=1,
                  reg_val=0):
 
@@ -281,9 +281,23 @@ class Model(object):
         text = outputs[0]
         probability = outputs[1]
         if sys.version_info >= (3,):
-            text = text.decode('iso-8859-1')
+            text = text.decode('utf8')
 
         return (text, probability)
+    
+    def fmeasure(textocr, truelabel, correct_part):
+        A=len(truelabel)
+        B=len (textocr)
+        C=correct_part
+        if C==0:
+            acc = 0
+        else:
+            acc = 2*C/B*C/A/(C/A+C/B)
+        return acc        
+    
+    def cal_acc_line(gt,ocr):
+        sm = edit_distance.SequenceMatcher(a=gt, b=ocr)
+        return sm.matches()    
 
     def test(self, data_path):
         current_step = 0
@@ -304,9 +318,9 @@ class Model(object):
             ground = batch['labels'][0]
             comment = batch['comments'][0]
             if sys.version_info >= (3,):
-                output = output.decode('iso-8859-1')
-                ground = ground.decode('iso-8859-1')
-                comment = comment.decode('iso-8859-1')
+                output = output.decode('utf8')
+                ground = ground.decode('utf8')
+                comment = comment.decode('utf8')
 
             probability = result['probability']
 
